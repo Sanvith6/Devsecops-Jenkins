@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: starter-app
+  labels:
+    app: starter-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: starter-app
+  template:
+    metadata:
+      labels:
+        app: starter-app
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: app
+        image: ghcr.io/your-org/starter-app:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: APP_NAME
+          value: starter-app
+        - name: APP_ENV
+          value: production
+        - name: APP_VERSION
+          value: "1.0.0"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 10001
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
